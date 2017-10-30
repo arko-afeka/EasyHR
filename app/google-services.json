@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "889720243643",
+    "firebase_url": "https://easyhr-bf886.firebaseio.com",
+    "project_id": "easyhr-bf886",
+    "storage_bucket": "easyhr-bf886.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889720243643:android:2f59230c3612e759",
+        "android_client_info": {
+          "package_name": "afeka.katz.arkadiy.easyhr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "889720243643-jq3t62n922eqnn8672go4o8vf2fsrdi4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDanHF8X36dz8p2WYIrXPIMjJNTFgTGeZ4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "889720243643-jq3t62n922eqnn8672go4o8vf2fsrdi4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
