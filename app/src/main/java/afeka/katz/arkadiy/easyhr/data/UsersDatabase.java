@@ -19,6 +19,7 @@ import afeka.katz.arkadiy.easyhr.model.User;
 
 public class UsersDatabase {
     public static final String REF = "users";
+    public static final String MAPPING_REF = "users_mapping";
     private static final String TAG = UsersDatabase.class.getCanonicalName();
 
     public CompletableFuture<User> getUser(final String id) {
@@ -28,7 +29,7 @@ public class UsersDatabase {
         reference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                boolean exists = dataSnapshot.hasChild(User.NAME_PROPERTY);
+                boolean exists = dataSnapshot.hasChild(id);
 
                 if (exists) {
                     DataSnapshot data = dataSnapshot.child(id);
@@ -52,5 +53,7 @@ public class UsersDatabase {
     public void addUser(User user) {
         DatabaseReference ref = DatabaseConst.CONNECTION.getReference(REF).child(user.getId());
         ref.updateChildren(user.toMap());
+        DatabaseReference refMapping = DatabaseConst.CONNECTION.getReference(MAPPING_REF);
+        refMapping.setValue(user.getEmail(), user.getId());
     }
 }

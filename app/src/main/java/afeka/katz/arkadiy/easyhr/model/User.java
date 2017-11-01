@@ -6,6 +6,7 @@ import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,11 +35,13 @@ public class User {
     private List<String> companies;
 
     public User() {
+        int i = 0;
     }
 
     public User(FirebaseUser user) {
-        this.isVerified = user.isEmailVerified();
+//        this.isVerified = user.isEmailVerified();
         this.id = user.getUid();
+        this.companies = new ArrayList<>();
     }
 
     public void setName(String name) {
@@ -82,6 +85,9 @@ public class User {
     }
 
     public List<String> getCompanies() {
+        if (companies == null) {
+            companies = new ArrayList<>();
+        }
         return companies;
     }
 

@@ -9,18 +9,17 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
 
 import afeka.katz.arkadiy.easyhr.R;
 
-public class UserDataFragment extends Fragment implements View.OnClickListener {
+public class UserInfoFragment extends Fragment implements View.OnClickListener {
     private OnFragmentInteractionListener mListener;
 
-    public UserDataFragment() {
+    public UserInfoFragment() {
     }
 
-    public static UserDataFragment newInstance() {
-        UserDataFragment fragment = new UserDataFragment();
+    public static UserInfoFragment newInstance() {
+        UserInfoFragment fragment = new UserInfoFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
@@ -34,19 +33,8 @@ public class UserDataFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        EditText email = getView().findViewById(R.id.user_data_email);
 
         boolean accept = true;
-
-
-        if (email.getText().toString().length() == 0) {
-            accept = false;
-            email.setError("EMail cannot be blank");
-        } else if (!EmailValidator.getInstance().isValid(email.getText().toString())) {
-            accept = false;
-            email.setError("EMail is not valid!");
-        }
-
         EditText name = getView().findViewById(R.id.user_data_first_name);
 
         if (name.getText().toString().length() == 0) {
@@ -68,7 +56,7 @@ public class UserDataFragment extends Fragment implements View.OnClickListener {
         }
 
         if (accept) {
-            mListener.onUserDataFilled(name.getText().toString(), lastName.getText().toString(), email.getText().toString());
+            mListener.onUserDataFilled(name.getText().toString(), lastName.getText().toString());
         }
     }
 
@@ -101,6 +89,6 @@ public class UserDataFragment extends Fragment implements View.OnClickListener {
     }
 
     public interface OnFragmentInteractionListener {
-        void onUserDataFilled(String name, String familyName, String email);
+        void onUserDataFilled(String name, String familyName);
     }
 }

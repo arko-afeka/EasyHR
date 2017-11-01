@@ -1,14 +1,24 @@
 <resources>
     <string name="ok">OK</string>
+    <string name="no">NO</string>
     <string name="app_name">EasyHR</string>
+    <string name="action_settings">Options</string>
+    <string name="add_to_comapny">Add to company</string>
+
+    <string name="login_failed_title">Login Failed</string>
+    <string name="login_failed_text">Login process has failed, please retry</string>
 
     <string name="user_type_title">Decide who you are</string>
     <string name="user_type_text">Are you a worker? or a manager?</string>
-    <string-array name="user_type_items">
-        <item>Worker</item>
-        <item>Manager</item>
-    </string-array>
+    <string name="user_type_choice_worker">Worker</string>
+    <string name="user_type_choice_manager">Manager</string>
     <string name="user_type_manager">Manager</string>
+
+    <string name="user_type_worker_title">You are a worker</string>
+    <string name="user_type_worker_text">
+        You are a worker, please give your email to your boss,
+        to add you to the company
+    </string>
 
     <string name="user_verify_sent_title">Verification</string>
     <string name="user_verify_sent_text">
@@ -16,18 +26,26 @@
         open the attached link, and open the application again
     </string>
 
+    <string name="user_verify_not_sent_text">
+        For some reason, the verification email was not sent,
+        please go threw the process again
+    </string>
+
     <string name="user_not_verified_title">Not verified</string>
-    <string name="user_not_verified_text">You must verify your email in order to use EasyHR</string>
+    <string name="user_not_verified_text">
+        You must verify your email in order to use EasyHR,
+        would you like to resend your verification email?
+    </string>
 
     <string name="sign_in_failed_title">Sign in failed</string>
     <string name="sign_in_failed">Sign in failed, please retry, or exit the application</string>
-    <string name="sign_in">Sign in</string>
+    <string name="save">Save</string>
 
     <string name="user_data_title">User information</string>
     <string name="user_data_first_name">First Name</string>
     <string name="user_data_last_name">Last Name</string>
     <string name="user_data_email">EMail</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="company_data_title">Company information</string>
+    <string name="company_data_name">Name</string>
 </resources>

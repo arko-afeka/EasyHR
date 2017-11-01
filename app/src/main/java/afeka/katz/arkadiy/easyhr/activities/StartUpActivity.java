@@ -1,13 +1,12 @@
 package afeka.katz.arkadiy.easyhr.activities;
 
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.google.android.gms.auth.api.Auth;
@@ -27,13 +26,12 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import java.util.function.Consumer;
 
 import afeka.katz.arkadiy.easyhr.R;
-import afeka.katz.arkadiy.easyhr.activities.fragments.UserDataFragment;
 import afeka.katz.arkadiy.easyhr.data.UsersDatabase;
 import afeka.katz.arkadiy.easyhr.model.User;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, UserDataFragment.OnFragmentInteractionListener {
+public class StartUpActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private final int RC_SIGN_IN  = 1;
-    private final String TAG = MainActivity.class.getCanonicalName();
+    private final String TAG = StartUpActivity.class.getCanonicalName();
 
 
     private GoogleApiClient mGoogleApiClient;
@@ -42,7 +40,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_startup);
+        Toolbar myToolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(myToolbar);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -78,31 +78,51 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
             } else {
-                finish();
+                AlertDialog loginFailed = new AlertDialog.Builder(this).
+                        setTitle(R.string.login_failed_title).
+                        setMessage(R.string.login_failed_text).
+                        setNegativeButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                StartUpActivity.this.finish();
+                            }
+                        }).create();
+
+                loginFailed.show();
             }
         }
     }
 
-    private void updateUI (FirebaseUser firebaseUser) {
-        UsersDatabase usersDB = new UsersDatabase();
+    private void updateUI (final FirebaseUser firebaseUser) {
+        final UsersDatabase usersDB = new UsersDatabase();
         usersDB.getUser(firebaseUser.getUid()).thenAccept(new Consumer<User>() {
             @Override
             public void accept(User user) {
-                MainActivity.this.findViewById(R.id.loading).setVisibility(View.GONE);
+                StartUpActivity.this.findViewById(R.id.loading).setVisibility(View.GONE);
                 if (user == null) {
-                    Fragment userData = UserDataFragment.newInstance();
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.add(R.id.contentPanel, userData).commit();
+                    Intent newUser = new Intent(StartUpActivity.this, NewUserActivity.class);
+                    newUser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    StartUpActivity.this.startActivity(newUser);
                 } else {
-                    if (!user.isVerified()) {
+                    if (firebaseUser.isEmailVerified() && !user.isVerified()) {
+                        user.setVerified();
+                        usersDB.addUser(user);
+                    } else if (!user.isVerified()) {
                         AlertDialog failedDialog =
-                                new AlertDialog.Builder(MainActivity.this).
+                                new AlertDialog.Builder(StartUpActivity.this).
                                         setTitle(R.string.user_not_verified_title).
                                         setMessage(R.string.user_not_verified_text).
-                                        setNegativeButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                        setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                MainActivity.this.finish();
+                                                StartUpActivity.this.finish();
+                                            }
+                                        }).
+                                        setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                firebaseUser.sendEmailVerification();
+                                                StartUpActivity.this.finish();
                                             }
                                         }).
                                         create();
@@ -112,59 +132,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                     }
 
                     if (user.getCompanies().size() > 0) {
-
+                        Intent intent = new Intent(StartUpActivity.this, MainScreenActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
                     } else {
-                        AlertDialog failedDialog =
-                                new AlertDialog.Builder(MainActivity.this).
-                                        setTitle(R.string.user_type_title).
-                                        setMessage(R.string.user_type_text).
-                                        setItems(R.array.user_type_items, new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                if (which == 0) {
-
-                                                } else {
-
-                                                }
-                                            }
-                                        }).
-                                        create();
-
-                        failedDialog.show();
+                        Intent newUser = new Intent(StartUpActivity.this, NewUserActivity.class);
+                        newUser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        StartUpActivity.this.startActivity(newUser);
                     }
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onUserDataFilled(String name, String familyName, String email) {
-        final UsersDatabase database = new UsersDatabase();
-
-        final User user = new User(mAuth.getCurrentUser());
-        user.setEmail(email);
-        user.setFamily(familyName);
-        user.setName(name);
-
-        mAuth.getCurrentUser().sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (!task.isSuccessful()) {
-                    //TODO: Add verify email not sent
-                } else {
-                    AlertDialog verifyDialog =
-                            new AlertDialog.Builder(MainActivity.this).
-                                    setTitle(R.string.user_verify_sent_title).
-                                    setMessage(R.string.user_verify_sent_text).
-                                    setNegativeButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            MainActivity.this.finish();
-                                        }
-                                    }).
-                                    create();
-                    verifyDialog.show();
-                    database.addUser(user);
                 }
             }
         });
@@ -181,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                         updateUI(user);
                     } else {
                         AlertDialog failedDialog =
-                                new AlertDialog.Builder(MainActivity.this).
+                                new AlertDialog.Builder(StartUpActivity.this).
                                         setTitle(R.string.sign_in_failed_title).
                                         setMessage(R.string.sign_in_failed).create();
 
