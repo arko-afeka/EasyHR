@@ -3,6 +3,7 @@ package afeka.katz.arkadiy.easyhr.activities;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
 
 import java.util.function.Consumer;
 
+import afeka.katz.arkadiy.easyhr.EasyHRContext;
 import afeka.katz.arkadiy.easyhr.R;
 import afeka.katz.arkadiy.easyhr.data.UsersDatabase;
 import afeka.katz.arkadiy.easyhr.model.User;
@@ -40,7 +42,7 @@ public class StartUpActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_startup);
+        setContentView(R.layout.base_layout);
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
 
@@ -54,13 +56,25 @@ public class StartUpActivity extends AppCompatActivity implements GoogleApiClien
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
+
         mAuth = FirebaseAuth.getInstance();
         signIn();
     }
 
     private void signIn() {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        mGoogleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+            @Override
+            public void onConnected(@Nullable Bundle bundle) {
+                Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+                Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+                startActivityForResult(signInIntent, RC_SIGN_IN);
+            }
+
+            @Override
+            public void onConnectionSuspended(int i) {
+
+            }
+        });
     }
 
     @Override
@@ -94,7 +108,7 @@ public class StartUpActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void updateUI (final FirebaseUser firebaseUser) {
-        final UsersDatabase usersDB = new UsersDatabase();
+        final UsersDatabase usersDB = UsersDatabase.getInstance();
         usersDB.getUser(firebaseUser.getUid()).thenAccept(new Consumer<User>() {
             @Override
             public void accept(User user) {
@@ -104,10 +118,10 @@ public class StartUpActivity extends AppCompatActivity implements GoogleApiClien
                     newUser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     StartUpActivity.this.startActivity(newUser);
                 } else {
-                    if (firebaseUser.isEmailVerified() && !user.isVerified()) {
+                    if (firebaseUser.isEmailVerified() && !user.getIsVerified()) {
                         user.setVerified();
-                        usersDB.addUser(user);
-                    } else if (!user.isVerified()) {
+                        usersDB.updateUser(user);
+                    } else if (!user.getIsVerified()) {
                         AlertDialog failedDialog =
                                 new AlertDialog.Builder(StartUpActivity.this).
                                         setTitle(R.string.user_not_verified_title).
@@ -131,15 +145,11 @@ public class StartUpActivity extends AppCompatActivity implements GoogleApiClien
                         return;
                     }
 
-                    if (user.getCompanies().size() > 0) {
-                        Intent intent = new Intent(StartUpActivity.this, MainScreenActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                    } else {
-                        Intent newUser = new Intent(StartUpActivity.this, NewUserActivity.class);
-                        newUser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        StartUpActivity.this.startActivity(newUser);
-                    }
+                    EasyHRContext.getInstance().setCurrentUser(user);
+
+                    Intent intent = new Intent(StartUpActivity.this, MainScreenActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                 }
             }
         });

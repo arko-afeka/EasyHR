@@ -11,15 +11,18 @@ import android.widget.EditText;
 import org.apache.commons.lang3.StringUtils;
 
 import afeka.katz.arkadiy.easyhr.R;
+import afeka.katz.arkadiy.easyhr.model.User;
 
 public class UserInfoFragment extends Fragment implements View.OnClickListener {
     private OnFragmentInteractionListener mListener;
+    private User user;
 
     public UserInfoFragment() {
     }
 
-    public static UserInfoFragment newInstance() {
+    public static UserInfoFragment newInstance(User user) {
         UserInfoFragment fragment = new UserInfoFragment();
+        fragment.user = user;
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
@@ -33,7 +36,6 @@ public class UserInfoFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-
         boolean accept = true;
         EditText name = getView().findViewById(R.id.user_data_first_name);
 
@@ -67,6 +69,11 @@ public class UserInfoFragment extends Fragment implements View.OnClickListener {
         ViewGroup fragmentView = (ViewGroup)inflater.inflate(R.layout.fragment_user_data, container, false);
 
         fragmentView.findViewById(R.id.sign_in).setOnClickListener(this);
+
+        if (user != null) {
+            ((EditText)fragmentView.findViewById(R.id.user_data_first_name)).setText(user.getName());
+            ((EditText)fragmentView.findViewById(R.id.user_data_last_name)).setText(user.getFamily());
+        }
 
         return fragmentView;
     }

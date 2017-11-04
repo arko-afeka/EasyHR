@@ -4,6 +4,20 @@
     <string name="app_name">EasyHR</string>
     <string name="action_settings">Options</string>
     <string name="add_to_comapny">Add to company</string>
+    <string name="create_company">Create company</string>
+    <string name="change_user_info">Change user info</string>
+    <string name="logout">Logout</string>
+
+    <string-array name="week_days">
+        <item></item>
+        <item>Sunday</item>
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+    </string-array>
 
     <string name="login_failed_title">Login Failed</string>
     <string name="login_failed_text">Login process has failed, please retry</string>
@@ -37,9 +51,14 @@
         would you like to resend your verification email?
     </string>
 
+    <string name="shifts">Shifts</string>
+    <string name="add_shift">Add shift</string>
+
     <string name="sign_in_failed_title">Sign in failed</string>
     <string name="sign_in_failed">Sign in failed, please retry, or exit the application</string>
     <string name="save">Save</string>
+
+    <string name="add_worker">Add worker</string>
 
     <string name="user_data_title">User information</string>
     <string name="user_data_first_name">First Name</string>
@@ -48,4 +67,15 @@
 
     <string name="company_data_title">Company information</string>
     <string name="company_data_name">Name</string>
+
+    <string name="assign_shifts_manager">Assign shifts for upcoming week</string>
+    <string name="edit_workers">Edit workers</string>
+    <string name="edit_company_data">Edit company info</string>
+    <string name="worker_mode">Switch to worker mode</string>
+
+    <string name="resign_worker">Resign from company</string>
+    <string name="assign_shifts_worker">Request shifts for upcoming week</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

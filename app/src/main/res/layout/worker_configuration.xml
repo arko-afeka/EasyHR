@@ -1,0 +1,25 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditText
+        android:id="@+id/email"
+        android:inputType="textEmailAddress"
+        android:layout_width="300sp"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/manager"
+        android:hint="@string/user_data_email"
+        android:textSize="15sp"
+        android:layout_weight="0"
+        android:layout_marginEnd="10dp">
+    </EditText>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/manager"
+        android:layout_weight="1"/>
+    <Button
+        android:layout_width="40sp"
+        android:layout_height="40sp"
+        android:layout_toEndOf="@+id/manager"
+        android:id="@+id/remove_worker"
+        android:background="@mipmap/ic_remove"
+        android:layout_weight="1"/>
+</merge>

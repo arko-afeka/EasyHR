@@ -33,13 +33,13 @@
             android:hint="@string/user_data_last_name"
             style="@style/user_data_edit_text"
             android:id="@+id/user_data_last_name"/>
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            style="@style/user_data_edit_text"
-            android:id="@+id/user_data_email"
-            android:hint="@string/user_data_email"/>
+        <!--<EditText-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_weight="1"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--style="@style/user_data_edit_text"-->
+            <!--android:id="@+id/user_data_email"-->
+            <!--android:hint="@string/user_data_email"/>-->
     </LinearLayout>
     <Button
         android:layout_width="wrap_content"

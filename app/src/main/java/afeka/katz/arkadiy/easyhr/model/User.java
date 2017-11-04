@@ -22,7 +22,7 @@ public class User {
     public static final String EMAIL_PROPERTY = "email";
     public static final String ID_PROPERTY = "id";
     public static final String COMPANIES_PROPERTY = "companies";
-    public static final String IS_VERIFIED = "is_verified";
+    public static final String IS_VERIFIED = "isVerified";
 
     private String name;
     private String family;
@@ -30,16 +30,15 @@ public class User {
     private String email;
     private String id;
 
-    private boolean isVerified;
+    private Boolean isVerified;
 
     private List<String> companies;
 
     public User() {
-        int i = 0;
     }
 
     public User(FirebaseUser user) {
-//        this.isVerified = user.isEmailVerified();
+//        this.getIsVerified = user.isEmailVerified();
         this.id = user.getUid();
         this.companies = new ArrayList<>();
     }
@@ -81,7 +80,17 @@ public class User {
     }
 
     public void addRelatedCompany(String company) {
+        if (companies == null) {
+            companies = new ArrayList<>();
+        }
+
+        if (companies.contains(company)) return;
+
         companies.add(company);
+    }
+
+    public void resignFromCompany(String company) {
+        companies.remove(company);
     }
 
     public List<String> getCompanies() {
@@ -95,7 +104,7 @@ public class User {
         this.isVerified = true;
     }
 
-    public boolean isVerified() {
+    public boolean getIsVerified() {
         return isVerified;
     }
 

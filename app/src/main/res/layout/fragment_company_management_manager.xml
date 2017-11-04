@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:id="@+id/company_management_options">
+
+    <include layout="@layout/fragment_company_management"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/assign_shifts_manager"
+        android:background="@android:color/transparent"
+        android:id="@+id/assign_shifts"
+        android:layout_marginBottom="5dp"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/edit_workers"
+        android:background="@android:color/transparent"
+        android:id="@+id/edit_workers"
+        android:layout_marginBottom="5dp"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/edit_company_data"
+        android:background="@android:color/transparent"
+        android:id="@+id/edit_company"
+        android:layout_marginBottom="5dp"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/worker_mode"
+        android:background="@android:color/transparent"
+        android:id="@+id/worker_mode"
+        android:layout_marginBottom="5dp"/>
+
+</LinearLayout>

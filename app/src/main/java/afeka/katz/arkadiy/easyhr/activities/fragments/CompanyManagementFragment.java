@@ -1,0 +1,185 @@
+package afeka.katz.arkadiy.easyhr.activities.fragments;
+
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.content.Context;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+import afeka.katz.arkadiy.easyhr.EasyHRContext;
+import afeka.katz.arkadiy.easyhr.R;
+import afeka.katz.arkadiy.easyhr.data.CompaniesDatabase;
+import afeka.katz.arkadiy.easyhr.data.UsersDatabase;
+import afeka.katz.arkadiy.easyhr.model.Company;
+import afeka.katz.arkadiy.easyhr.model.Shift;
+import afeka.katz.arkadiy.easyhr.model.User;
+
+/**
+ * Created by arkokat on 11/4/2017.
+ */
+
+public class CompanyManagementFragment extends Fragment implements View.OnClickListener,
+        CompanyInfoFragment.OnFragmentInteractionListener, CompaniesDatabase.OnCompanyUpdate,
+        EditWorkersFragment.OnFragmentInteractionListener {
+    private Company company;
+    private User currentUser;
+    private AppCompatActivity cx;
+    private ViewGroup currentView;
+
+    public CompanyManagementFragment() {
+        this.currentUser = EasyHRContext.getInstance().getCurrentUser();
+    }
+
+    public static CompanyManagementFragment newInstance(Company company, AppCompatActivity cx) {
+        CompanyManagementFragment fragment = new CompanyManagementFragment();
+        fragment.company = company;
+        fragment.cx = cx;
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        if (!company.getManagers().contains(currentUser.getId())) {
+            currentView = (ViewGroup) inflater.inflate(R.layout.fragment_company_management_worker, container, false);
+        } else {
+            currentView = (ViewGroup) inflater.inflate(R.layout.fragment_company_management_manager, container, false);
+        }
+
+        ((TextView)currentView.findViewById(R.id.company_name)).setText(company.getName());
+
+        ViewGroup companyManagementOptions = currentView.findViewById(R.id.company_management_options);
+
+        for (int i = 0; i < companyManagementOptions.getChildCount(); ++i) {
+            View child = companyManagementOptions.getChildAt(i);
+
+            child.setOnClickListener(this);
+        }
+
+        CompaniesDatabase.getInstance().addOnUpdateListener(company.getId(), this);
+
+        return currentView;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        CompaniesDatabase.getInstance().removeOnUpdateListener(company.getId());
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+    }
+
+    @Override
+    public void companyDataFilled(String name, List<Shift> shifts) {
+        Company editedCompany = new Company(company);
+
+        editedCompany.setName(name);
+        editedCompany.setShifts(shifts);
+
+        CompaniesDatabase.getInstance().updateCompany(editedCompany);
+
+        getFragmentManager().popBackStack();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((TextView)getView().findViewById(R.id.company_name)).setText(company.getName());
+        getView().findViewById(R.id.company_name).invalidate();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.edit_company:
+                Fragment editCompany = CompanyInfoFragment.newInstance(company, cx, this);
+                cx.getFragmentManager().beginTransaction().
+                    replace(R.id.content_panel, editCompany).addToBackStack(null).commit();
+                break;
+            case R.id.edit_workers:
+                cx.findViewById(R.id.loading).setVisibility(View.VISIBLE);
+                List<CompletableFuture<User>> users = new ArrayList<>();
+
+                for (String userId: company.getWorkers()) {
+                    users.add(UsersDatabase.getInstance().getUser(userId));
+                }
+
+                CompletableFuture.allOf(users.toArray(new CompletableFuture[users.size()])).
+                        thenApply(x ->
+                            users.stream().
+                                map(CompletableFuture::join).collect(Collectors.toList())
+                        ).thenAccept(usersList -> {
+                    cx.findViewById(R.id.loading).setVisibility(View.INVISIBLE);
+
+                    Fragment editWorkers = EditWorkersFragment.newInstance(usersList,
+                            company.getManagers(), this);
+                    cx.getFragmentManager().beginTransaction().
+                            replace(R.id.content_panel, editWorkers).addToBackStack(null).commit();
+                });
+                break;
+            case R.id.assign_shifts:
+                break;
+            case R.id.resign:
+                company.removeWorker(currentUser.getId());
+                CompaniesDatabase.getInstance().updateCompany(company);
+                currentUser.resignFromCompany(company.getId());
+                UsersDatabase.getInstance().updateUser(currentUser);
+                break;
+        }
+    }
+
+    @Override
+    public void companyUpdated(String id, Company newData) {
+        company = newData;
+
+        if (!company.getWorkers().contains(currentUser.getId())) {
+            getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+    }
+
+    @Override
+    public void workersUpdated(List<User> workers, List<String> managers) {
+        workers.forEach(x -> {
+            x.addRelatedCompany(company.getId());
+            UsersDatabase.getInstance().updateUser(x);
+        });
+
+        List<String> workerUids = workers.stream().map(User::getId).
+                collect(Collectors.toList());
+
+        workerUids.add(currentUser.getId());
+        managers.add(currentUser.getId());
+
+        company.updateManagers(managers);
+        company.updateWorkers(workerUids);
+
+        CompaniesDatabase.getInstance().updateCompany(company);
+
+        getFragmentManager().popBackStack();
+    }
+}
