@@ -8,6 +8,8 @@
     <color name="primaryEditTextColor">#A6AF8D</color>
     <color name="editTextErrorColor">#FF1818</color>
 
+    <color name="yellow">#AA9739</color>
+    <color name="green">#65c80a</color>
 
     <color name="defaultBackground">#65c80a</color>
     <color name="white">#ffffff</color>

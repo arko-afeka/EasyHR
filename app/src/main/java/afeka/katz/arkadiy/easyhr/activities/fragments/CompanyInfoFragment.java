@@ -24,26 +24,23 @@ public class CompanyInfoFragment extends Fragment implements View.OnClickListene
     private OnFragmentInteractionListener mListener;
     private List<ShiftConfiguration> shifts = new ArrayList<>();
     private Company company;
-    private Context cx;
     private ViewGroup currentView;
 
     public CompanyInfoFragment() {
     }
 
-    public static CompanyInfoFragment newInstance(Company company, Context cx) {
+    public static CompanyInfoFragment newInstance(Company company) {
         CompanyInfoFragment fragment = new CompanyInfoFragment();
         fragment.company = company;
-        fragment.cx = cx;
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
     }
 
-    public static CompanyInfoFragment newInstance(Company company, Context cx,
+    public static CompanyInfoFragment newInstance(Company company,
                                                         CompanyInfoFragment.OnFragmentInteractionListener listener) {
-        CompanyInfoFragment fragment = newInstance(company, cx);
+        CompanyInfoFragment fragment = newInstance(company);
         fragment.company = company;
-        fragment.cx = cx;
         fragment.mListener = listener;
         Bundle args = new Bundle();
         fragment.setArguments(args);
@@ -75,7 +72,7 @@ public class CompanyInfoFragment extends Fragment implements View.OnClickListene
     }
 
     private void addShiftInternal(Shift shift) {
-        ShiftConfiguration configuration = new ShiftConfiguration(cx);
+        ShiftConfiguration configuration = new ShiftConfiguration(getContext());
         configuration.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         ViewGroup companyAddForm = currentView.findViewById(R.id.company_data_form);
 

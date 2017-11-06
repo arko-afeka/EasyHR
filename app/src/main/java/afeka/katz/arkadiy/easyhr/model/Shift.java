@@ -8,12 +8,14 @@ public class Shift {
     private long dayInd;
     private long startTime;
     private long endTime;
+    private String id;
 
     public Shift() {
 
     }
 
-    public Shift(long dayInd, long startTime, long endTime) {
+    public Shift(String id, long dayInd, long startTime, long endTime) {
+        this.id = id;
         this.dayInd = dayInd;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -21,6 +23,10 @@ public class Shift {
 
     public long getDayInd() {
         return dayInd;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public long getStartTime() {

@@ -42,7 +42,7 @@ public class MenuListener implements Toolbar.OnMenuItemClickListener {
         switch (item.getItemId()) {
             case R.id.create_company:
                 FragmentTransaction createCompanyTransaction = manager.beginTransaction();
-                createCompanyTransaction.replace(R.id.content_panel, CompanyInfoFragment.newInstance(null, cx));
+                createCompanyTransaction.replace(R.id.content_panel, CompanyInfoFragment.newInstance(null));
                 createCompanyTransaction.addToBackStack(null).commit();
                 break;
             case R.id.edit_info:
@@ -62,7 +62,7 @@ public class MenuListener implements Toolbar.OnMenuItemClickListener {
 
                 if (!company.isPresent()) return false;
 
-                CompanyManagementFragment companyManagementFragment = CompanyManagementFragment.newInstance(company.get(), cx);
+                CompanyManagementFragment companyManagementFragment = CompanyManagementFragment.newInstance(company.get());
                 FragmentTransaction companyManagementTransaction = manager.beginTransaction();
                 companyManagementTransaction.replace(R.id.content_panel, companyManagementFragment).addToBackStack(null).
                         commit();

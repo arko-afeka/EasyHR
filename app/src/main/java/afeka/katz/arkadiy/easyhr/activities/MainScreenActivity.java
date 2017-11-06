@@ -52,6 +52,7 @@ public class MainScreenActivity extends AppCompatActivity implements CompaniesDa
         newCompany.addManager(EasyHRContext.getInstance().getCurrentUser().getId());
         CompaniesDatabase.getInstance().updateCompany(newCompany);
         userCompanies.put(newCompany.getId(), newCompany);
+        UsersDatabase.getInstance().updateUser(EasyHRContext.getInstance().getCurrentUser());
         this.invalidateOptionsMenu();
 
         Toast.makeText(this, "New company has been created", EasyHRContext.getInstance().defaultToastDuration()).show();

@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import afeka.katz.arkadiy.easyhr.R;
 import afeka.katz.arkadiy.easyhr.model.Shift;
@@ -16,9 +17,10 @@ import afeka.katz.arkadiy.easyhr.model.Shift;
  * TODO: document your custom view class.
  */
 public class ShiftView extends LinearLayout {
-    private Spinner day;
-    private Spinner startTime;
-    private Spinner endTime;
+    private TextView day;
+    private TextView startTime;
+    private TextView endTime;
+    private Shift shift;
 
     public ShiftView(Context context) {
         super(context);
@@ -42,17 +44,19 @@ public class ShiftView extends LinearLayout {
 
 
     public Shift getShift() {
-        if (day.getSelectedItemId() == 0 ||
-                startTime.getSelectedItemId() == 0 ||
-                endTime.getSelectedItemId() == 0) return null;
+        return shift;
+    }
 
-        return new Shift(day.getSelectedItemId() - 1, (startTime.getSelectedItemId() - 1 )* 15, (endTime.getSelectedItemId() - 1) * 15);
+    private String getTimeByInd(long time) {
+        return String.format("%02d:%02d", time / 60, time  % 60);
     }
 
     public void setShift(Shift shift) {
-        day.setSelection((int)shift.getDayInd() + 1);
-        startTime.setSelection((int)shift.getStartTime() + 1);
-        endTime.setSelection((int)shift.getEndTime() + 1);
+        this.shift = shift;
+
+        this.day.setText(getResources().getStringArray(R.array.week_days)[(int)shift.getDayInd()]);
+        this.startTime.setText(getTimeByInd(shift.getStartTime()));
+        this.endTime.setText(getTimeByInd(shift.getEndTime()));
         invalidate();
     }
 }

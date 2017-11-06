@@ -11,13 +11,17 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import afeka.katz.arkadiy.easyhr.EasyHRContext;
 import afeka.katz.arkadiy.easyhr.R;
 import afeka.katz.arkadiy.easyhr.data.CompaniesDatabase;
+import afeka.katz.arkadiy.easyhr.data.ShiftsDatabase;
 import afeka.katz.arkadiy.easyhr.data.UsersDatabase;
 import afeka.katz.arkadiy.easyhr.model.Company;
 import afeka.katz.arkadiy.easyhr.model.Shift;
@@ -29,20 +33,18 @@ import afeka.katz.arkadiy.easyhr.model.User;
 
 public class CompanyManagementFragment extends Fragment implements View.OnClickListener,
         CompanyInfoFragment.OnFragmentInteractionListener, CompaniesDatabase.OnCompanyUpdate,
-        EditWorkersFragment.OnFragmentInteractionListener {
+        EditWorkersFragment.OnFragmentInteractionListener, AssignShifts.OnFragmentInteractionListener {
     private Company company;
     private User currentUser;
-    private AppCompatActivity cx;
     private ViewGroup currentView;
 
     public CompanyManagementFragment() {
         this.currentUser = EasyHRContext.getInstance().getCurrentUser();
     }
 
-    public static CompanyManagementFragment newInstance(Company company, AppCompatActivity cx) {
+    public static CompanyManagementFragment newInstance(Company company) {
         CompanyManagementFragment fragment = new CompanyManagementFragment();
         fragment.company = company;
-        fragment.cx = cx;
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
@@ -109,20 +111,20 @@ public class CompanyManagementFragment extends Fragment implements View.OnClickL
     @Override
     public void onResume() {
         super.onResume();
-        ((TextView)getView().findViewById(R.id.company_name)).setText(company.getName());
-        getView().findViewById(R.id.company_name).invalidate();
+//        ((TextView)getView().findViewById(R.id.company_name)).setText(company.getName());
+//        getView().findViewById(R.id.company_name).invalidate();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.edit_company:
-                Fragment editCompany = CompanyInfoFragment.newInstance(company, cx, this);
-                cx.getFragmentManager().beginTransaction().
+                Fragment editCompany = CompanyInfoFragment.newInstance(company, this);
+                getActivity().getFragmentManager().beginTransaction().
                     replace(R.id.content_panel, editCompany).addToBackStack(null).commit();
                 break;
             case R.id.edit_workers:
-                cx.findViewById(R.id.loading).setVisibility(View.VISIBLE);
+                getActivity().findViewById(R.id.loading).setVisibility(View.VISIBLE);
                 List<CompletableFuture<User>> users = new ArrayList<>();
 
                 for (String userId: company.getWorkers()) {
@@ -134,15 +136,78 @@ public class CompanyManagementFragment extends Fragment implements View.OnClickL
                             users.stream().
                                 map(CompletableFuture::join).collect(Collectors.toList())
                         ).thenAccept(usersList -> {
-                    cx.findViewById(R.id.loading).setVisibility(View.INVISIBLE);
+                    getActivity().findViewById(R.id.loading).setVisibility(View.INVISIBLE);
 
                     Fragment editWorkers = EditWorkersFragment.newInstance(usersList,
                             company.getManagers(), this);
-                    cx.getFragmentManager().beginTransaction().
+                    getActivity().getFragmentManager().beginTransaction().
                             replace(R.id.content_panel, editWorkers).addToBackStack(null).commit();
                 });
                 break;
             case R.id.assign_shifts:
+                CompletableFuture<Map<String, List<Shift>>> approved =
+                        ShiftsDatabase.getInstance().getShiftsForNextWeek(company);
+                CompletableFuture<Map<String, List<Shift>>> pending =
+                        ShiftsDatabase.getInstance().getPendingShifts(company);
+                if (company.getManagers().contains(currentUser.getId())) {
+                    getActivity().findViewById(R.id.loading).setVisibility(View.VISIBLE);
+                    List<CompletableFuture<User>> companyUsers = new ArrayList<>();
+
+                    for (String userId: company.getWorkers()) {
+                        companyUsers.add(UsersDatabase.getInstance().getUser(userId));
+                    }
+
+                    CompletableFuture.allOf(companyUsers.toArray(new CompletableFuture[companyUsers.size()])).
+                            thenApply(x ->
+                                    companyUsers.stream().
+                                            map(CompletableFuture::join).collect(Collectors.toList())
+                            ).thenAccept(usersList -> {
+
+                        CompletableFuture.allOf(pending, approved).thenAccept(data -> {
+                            Map<String, List<Shift>> pendingResult = pending.join();
+                            Map<String, List<Shift>> approvedResult = approved.join();
+
+
+                            Map<String, User> userIdMapping =
+                                    usersList.stream().collect(Collectors.toMap(User::getId, x -> x));
+
+                            Map<User, List<Shift>> pendingShifts = pendingResult.entrySet().stream().
+                                    filter(x -> userIdMapping.containsKey(x.getKey())).collect(
+                                            Collectors.toMap(x ->
+                                                    userIdMapping.get(x.getKey()),
+                                                    Map.Entry::getValue));
+                            Map<User, List<Shift>> approvedShifts = approvedResult.entrySet().stream().
+                                    filter(x -> userIdMapping.containsKey(x.getKey())).collect(
+                                    Collectors.toMap(x ->
+                                                    userIdMapping.get(x.getKey()),
+                                            Map.Entry::getValue));
+
+                            Fragment editWorkers =
+                                    AssignShifts.newInstance(company, usersList, approvedShifts,
+                                            pendingShifts, CompanyManagementFragment.this);
+                            getActivity().getFragmentManager().beginTransaction().
+                                    replace(R.id.content_panel, editWorkers).addToBackStack(null).commit();
+                            getActivity().findViewById(R.id.loading).setVisibility(View.INVISIBLE);
+
+                        });
+                    });
+
+                } else {
+                    CompletableFuture.allOf(pending, approved).thenAccept(data -> {
+                        Map<String, List<Shift>> pendingResult = pending.join();
+                        Map<String, List<Shift>> approvedResult = approved.join();
+
+                        Fragment assignShifts =
+                                AssignShifts.newInstance(currentUser, company,
+                                        pendingResult.getOrDefault(currentUser.getId(), new ArrayList<>()),
+                                        approvedResult.getOrDefault(currentUser.getId(), new ArrayList<>()),
+                                         CompanyManagementFragment.this);
+                        getActivity().getFragmentManager().beginTransaction().
+                                replace(R.id.content_panel, assignShifts).addToBackStack(null).commit();
+                        getActivity().findViewById(R.id.loading).setVisibility(View.INVISIBLE);
+
+                    });
+                }
                 break;
             case R.id.resign:
                 company.removeWorker(currentUser.getId());
@@ -160,6 +225,8 @@ public class CompanyManagementFragment extends Fragment implements View.OnClickL
         if (!company.getWorkers().contains(currentUser.getId())) {
             getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         }
+
+        CompaniesDatabase.getInstance().updateCompany(newData);
     }
 
     @Override
@@ -179,6 +246,32 @@ public class CompanyManagementFragment extends Fragment implements View.OnClickL
         company.updateWorkers(workerUids);
 
         CompaniesDatabase.getInstance().updateCompany(company);
+
+        getFragmentManager().popBackStack();
+    }
+
+    private void setShifts(Map<User, List<Shift>> assignedShifts) {
+        for (Map.Entry<User, List<Shift>> userShift: assignedShifts.entrySet()) {
+            for (Shift shift: userShift.getValue()) {
+                ShiftsDatabase.getInstance().addApprovedShift(userShift.getKey(), company, shift);
+            }
+        }
+    }
+
+    private void requestForShifts(List<Shift> selectedShifts) {
+        for (Shift shift: selectedShifts) {
+            ShiftsDatabase.getInstance().addPendingShift(currentUser, company, shift);
+        }
+    }
+
+    @Override
+    public void onShiftsAssigned(Map<User, List<Shift>> selectedShifts) {
+        if (company.getManagers().contains(currentUser.getId())) {
+            setShifts(selectedShifts);
+        } else if (company.getWorkers().contains(currentUser.getId())) {
+            requestForShifts(selectedShifts.values().isEmpty() ? Collections.EMPTY_LIST :
+                    selectedShifts.get(0));
+        }
 
         getFragmentManager().popBackStack();
     }
